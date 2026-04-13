@@ -11,7 +11,7 @@ const LANG_NAMES = { en: "English", es: "Spanish", fr: "French", de: "German", i
 const LANG_FLAGS = { en: "🇬🇧", es: "🇪🇸", fr: "🇫🇷", de: "🇩🇪", it: "🇮🇹", pt: "🇧🇷" };
 
 const COLORS = {
-  en: "#E63946", es: "#F4A261", fr: "#2A9D8F", de: "#457B9D", it: "#E76F51", pt: "#06D6A0",
+  en: "#E63946", es: "#f68325", fr: "#2A9D8F", de: "#457B9D", it: "#E76F51", pt: "#06D6A0",
   accent: "#58A6FF", green: "#7EE787", orange: "#F0883E", red: "#F85149", purple: "#BC8CFF"
 };
 
@@ -188,7 +188,7 @@ const topWords = {
 
 const fmt = (n) => n >= 1_000_000 ? (n / 1_000_000).toFixed(1) + "M" : n >= 1_000 ? (n / 1_000).toFixed(1) + "K" : String(n);
 
-const HOUR_COLORS = { Dawn: "#BC8CFF", Morning: "#58A6FF", Afternoon: "#7EE787", Night: "#F0883E" };
+const HOUR_COLORS = { Dawn: "#8d4fe3", Morning: "#f4fc16", Afternoon: "rgb(216, 138, 20)", Night: "#7a00fc" };
 
 // ─── COMPONENTS ───────────────────────────────────────────────────────────
 
