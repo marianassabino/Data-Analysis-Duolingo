@@ -54,7 +54,7 @@ npm start
 
 ```
 learning-traces-dashboard/
-├── public/
+├── docs/
 │   └── index.html          ← HTML base
 ├── src/
 │   ├── index.js            ← Ponto de entrada
