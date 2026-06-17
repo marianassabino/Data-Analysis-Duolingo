@@ -35,13 +35,6 @@ const pairData = [
   { pair: "en → pt", sessions: 311480, users: 2709, avg_accuracy: 91.1 }
 ];
 
-const recallData = [
-  { bucket: "0.0", count: 906340 }, { bucket: "0.1", count: 6 }, { bucket: "0.2", count: 1866 },
-  { bucket: "0.3", count: 27402 }, { bucket: "0.4", count: 2093 }, { bucket: "0.5", count: 449143 },
-  { bucket: "0.6", count: 22249 }, { bucket: "0.7", count: 297141 }, { bucket: "0.8", count: 314607 },
-  { bucket: "0.9", count: 50437 }, { bucket: "1.0", count: 10782942 }
-];
-
 const grammarData = [
   { part: "Noun", count: 5509632, perfection_rate: 85.4 },
   { part: "Verb", count: 2895366, perfection_rate: 83.3 },
@@ -279,9 +272,7 @@ const TABS = [
   { id: "languages", label: "Languages"},
   { id: "difficulty", label: "Difficulty"},
   { id: "grammar", label: "Grammar" },
-  { id: "schedule", label: "Usage Schedule"},
-  { id: "words", label: "Top Words"},
-  { id: "recall", label: "Recall" }
+  { id: "schedule", label: "Usage Schedule"}
 ];
 
 // ─── MAIN DASHBOARD ──────────────────────────────────────────────────────
@@ -289,7 +280,6 @@ const TABS = [
 export default function Dashboard() {
   const [tab, setTab] = useState("overview");
   const [gramLang, setGramLang] = useState("all");
-  const [wordLang, setWordLang] = useState("en");
   const [pairSort, setPairSort] = useState("sessions");
 
   const currentGrammar = gramLang === "all" ? grammarData : (langGrammar[gramLang] || grammarData);
@@ -374,62 +364,29 @@ export default function Dashboard() {
               </ResponsiveContainer>
             </div>
           </Card>
-
-          <SectionTitle sub="Distribution of predicted recall probability across all 12.8M records">Recall Distribution (p_recall)</SectionTitle>
-          <Card>
-        <div style={{ height: 240 }}>
-  <ResponsiveContainer width="100%" height="100%">
-    <BarChart data={recallData.map(d => ({ ...d, logCount: Math.log10(Math.max(d.count, 1)) }))} margin={{ left: 10, right: 10, top: 5, bottom: 5 }}>
-      <XAxis dataKey="bucket" tick={{ fill: "#ffffff", fontSize: 12 }} axisLine={false} tickLine={false} />
-      <YAxis tickFormatter={v => { if (v <= 0) return "0"; const n = Math.pow(10, v); return fmt(n); }} tick={{ fill: "#64748B", fontSize: 12 }} axisLine={false} tickLine={false} domain={[0, 'auto']} />
-      <Tooltip content={({ active, payload, label }) => {
-        if (!active || !payload?.length) return null;
-        const original = recallData.find(d => d.bucket === label);
-        return (<div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 14px", boxShadow: "0 8px 32px rgba(0,0,0,0.25)", fontSize: 13 }}>
-          <div style={{ fontWeight: 700, marginBottom: 4, color: "var(--fg)" }}>p_recall: {label}</div>
-          <div style={{ color: "var(--dim)" }}>Records: <strong>{original ? original.count.toLocaleString() : 0}</strong></div>
-        </div>);
-      }} />
-      <Bar dataKey="logCount" name="Records" fill={COLORS.accent} radius={[4, 4, 0, 0]} barSize={30} />
-    </BarChart>
-  </ResponsiveContainer>
-  <p style={{ fontSize: 11, color: "var(--dim)", textAlign: "center", marginTop: 4 }}>Y-axis in log₁₀ scale</p>
-</div>
-            <p style={{ fontSize: 12, color: "var(--dim)", marginTop: 12, textAlign: "center" }}>
-              83.9% of records have p_recall = 1.0 (well-memorized) · 7.1% have p_recall = 0.0 (forgotten)
-            </p>
-          </Card>
         </div>
       )}
 
       {/* ═══════════════════ LANGUAGES ═══════════════════ */}
       {tab === "languages" && (
         <div>
-          <SectionTitle sub="Detailed breakdown of each target language">Language Statistics</SectionTitle>
+          <SectionTitle sub="Sessions, users and accuracy for each target language">Language Statistics</SectionTitle>
           <Card>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 4px" }}>
-                <thead>
-                  <tr>
-                    {["Language", "Sessions", "Users", "Lexemes", "Accuracy"].map(h => (
-                      <th key={h} style={{ textAlign: h === "Language" ? "left" : "right", padding: "8px 14px", fontSize: 11, textTransform: "uppercase", letterSpacing: 1.5, color: "var(--dim)", fontWeight: 600 }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {langData.map(d => (
-                    <tr key={d.language} style={{ background: "var(--bg)" }}>
-                      <td style={{ padding: "14px", borderRadius: "8px 0 0 8px", fontWeight: 600 }}>
-                        <span style={{ fontSize: 20, marginRight: 8 }}>{LANG_FLAGS[d.language]}</span>{LANG_NAMES[d.language]}
-                      </td>
-                      <td style={{ padding: "14px", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontSize: 14 }}>{d.sessions.toLocaleString()}</td>
-                      <td style={{ padding: "14px", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontSize: 14 }}>{d.users.toLocaleString()}</td>
-                      <td style={{ padding: "14px", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontSize: 14 }}>{d.lexemes.toLocaleString()}</td>
-                      <td style={{ padding: "14px", textAlign: "right", borderRadius: "0 8px 8px 0" }}><AccuracyPill value={d.avg_accuracy} /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div style={{ height: 340 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={langData.map(d => ({ name: `${LANG_FLAGS[d.language]} ${LANG_NAMES[d.language]}`, lang: d.language, Sessions: d.sessions, Users: d.users, Lexemes: d.lexemes, Accuracy: d.avg_accuracy }))} margin={{ left: 10, right: 50, top: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#455f78" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fill: "#ffffff", fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="left" tickFormatter={fmt} tick={{ fill: "#ffffff", fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="right" orientation="right" domain={[80, 95]} tickFormatter={v => `${v}%`} tick={{ fill: COLORS.green, fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<TT />} />
+                  <Legend wrapperStyle={{ fontSize: 12, color: "var(--dim)" }} />
+                  <Bar yAxisId="left" dataKey="Sessions" radius={[4, 4, 0, 0]} barSize={26}>
+                    {langData.map((d, i) => <Cell key={i} fill={COLORS[d.language]} />)}
+                  </Bar>
+                  <Line yAxisId="right" dataKey="Accuracy" name="Accuracy %" stroke={COLORS.green} strokeWidth={2.5} dot={{ fill: "#0B0F14", stroke: COLORS.green, strokeWidth: 2, r: 5 }} />
+                </ComposedChart>
+              </ResponsiveContainer>
             </div>
           </Card>
 
@@ -497,19 +454,29 @@ export default function Dashboard() {
             </div>
           </Card>
 
-          <SectionTitle sub="Perfection rate by grammar class across languages — a radar view">Grammar Difficulty Radar</SectionTitle>
+          <SectionTitle sub="Perfection rate (%) by grammar class across languages — further out is easier">Grammar Difficulty Radar</SectionTitle>
           <Card>
-            <div style={{ height: 380 }}>
+            <div style={{ height: 440 }}>
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={radarGrammar} cx="50%" cy="50%" outerRadius="70%">
-                  <PolarGrid stroke="#1E2A36" />
-                  <PolarAngleAxis dataKey="part" tick={{ fill: "#ffffff", fontSize: 11 }} />
-                  <PolarRadiusAxis domain={[70, 95]} tick={{ fill: "#ffffff", fontSize: 10 }} />
+                <RadarChart data={radarGrammar} cx="50%" cy="50%" outerRadius="68%">
+                  <PolarGrid stroke="#455f78" />
+                  <PolarAngleAxis dataKey="part" tick={{ fill: "#ffffff", fontSize: 12 }} />
+                  <PolarRadiusAxis angle={90} domain={[70, 95]} tickCount={6} tickFormatter={v => `${v}%`} tick={{ fill: "#9fb6cc", fontSize: 10 }} axisLine={false} />
                   {["en", "es", "fr", "de"].map(lang => (
-                    <Radar key={lang} name={LANG_NAMES[lang]} dataKey={lang} stroke={COLORS[lang]} fill={COLORS[lang]} fillOpacity={0.08} strokeWidth={2} />
+                    <Radar key={lang} name={LANG_NAMES[lang]} dataKey={lang} stroke={COLORS[lang]} fill={COLORS[lang]} fillOpacity={0.12} strokeWidth={2.5} />
                   ))}
-                  <Legend wrapperStyle={{ fontSize: 12, color: "var(--dim)" }} />
-                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: 13, color: "var(--dim)" }} iconType="circle" />
+                  <Tooltip content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    return (<div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 14px", boxShadow: "0 8px 32px rgba(0,0,0,0.25)", fontSize: 13 }}>
+                      <div style={{ fontWeight: 700, marginBottom: 6, color: "var(--fg)" }}>{label}</div>
+                      {[...payload].sort((a, b) => b.value - a.value).map((p, i) => (
+                        <div key={i} style={{ color: p.color, display: "flex", justifyContent: "space-between", gap: 16 }}>
+                          <span>{p.name}</span><strong>{p.value}%</strong>
+                        </div>
+                      ))}
+                    </div>);
+                  }} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
@@ -544,34 +511,29 @@ export default function Dashboard() {
             </div>
           </Card>
           <Card>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 3px" }}>
-                <thead>
-                  <tr>
-                    {["Grammar Part", "Frequency", "Share", "Perfection Rate"].map(h => (
-                      <th key={h} style={{ textAlign: h === "Grammar Part" ? "left" : "right", padding: "8px 14px", fontSize: 11, textTransform: "uppercase", letterSpacing: 1.5, color: "var(--dim)", fontWeight: 600 }}>{h}</th>
+            <SectionTitle sub="Perfection rate by grammar class — sorted from hardest to easiest">Perfection Rate Ranking</SectionTitle>
+            <div style={{ height: 360 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={[...currentGrammar].sort((a, b) => a.perfection_rate - b.perfection_rate)} layout="vertical" margin={{ left: 30, right: 50, top: 5, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#455f78" horizontal={false} />
+                  <XAxis type="number" domain={[70, 95]} tickFormatter={v => `${v}%`} tick={{ fill: "#ffffff", fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="part" tick={{ fill: "#ffffff", fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} width={90} />
+                  <Tooltip content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    const d = payload[0].payload;
+                    return (<div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 14px", boxShadow: "0 8px 32px rgba(0,0,0,0.25)", fontSize: 13 }}>
+                      <div style={{ fontWeight: 700, marginBottom: 4, color: "var(--fg)" }}>{label}</div>
+                      <div style={{ color: "var(--dim)" }}>Perfection rate: <strong>{d.perfection_rate}%</strong></div>
+                      <div style={{ color: "var(--dim)" }}>Frequency: <strong>{d.count.toLocaleString()}</strong></div>
+                    </div>);
+                  }} />
+                  <Bar dataKey="perfection_rate" name="Perfection %" radius={[0, 6, 6, 0]} barSize={20}>
+                    {[...currentGrammar].sort((a, b) => a.perfection_rate - b.perfection_rate).map((d, i) => (
+                      <Cell key={i} fill={d.perfection_rate >= 90 ? COLORS.green : d.perfection_rate >= 85 ? COLORS.orange : COLORS.red} />
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentGrammar.map((d) => {
-                    const total = currentGrammar.reduce((s, x) => s + x.count, 0);
-                    return (
-                      <tr key={d.part} style={{ background: "var(--bg)" }}>
-                        <td style={{ padding: "12px 14px", borderRadius: "8px 0 0 8px", fontWeight: 600 }}>{d.part}</td>
-                        <td style={{ padding: "12px 14px", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontSize: 13 }}>{d.count.toLocaleString()}</td>
-                        <td style={{ padding: "12px 14px", textAlign: "right" }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }}>
-                            <div style={{ width: 60 }}><BarMeter value={d.count} max={currentGrammar[0].count} /></div>
-                            <span style={{ fontSize: 12, color: "var(--dim)", fontFamily: "'JetBrains Mono', monospace", minWidth: 40 }}>{(d.count / total * 100).toFixed(1)}%</span>
-                          </div>
-                        </td>
-                        <td style={{ padding: "12px 14px", textAlign: "right", borderRadius: "0 8px 8px 0" }}><AccuracyPill value={d.perfection_rate} size="sm" /></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
             <div style={{ marginTop: 16, padding: "14px 16px", background: "rgba(188,140,255,0.08)", borderRadius: 10, border: `1px solid ${COLORS.purple}30` }}>
               <p style={{ fontSize: 13, color: "var(--dim)", margin: 0, lineHeight: 1.6 }}>
@@ -656,81 +618,6 @@ export default function Dashboard() {
               <p style={{ fontSize: 13, color: "var(--dim)", margin: 0, lineHeight: 1.6 }}>
                 <strong style={{ color: COLORS.accent }}>Key Insight:</strong> March 6 (Wednesday) had the peak with 24,040 active users. Weekends show consistent dips. Usage tends to peak mid-week.
               </p>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ═══════════════════ WORDS ═══════════════════ */}
-      {tab === "words" && (
-        <div>
-          <SectionTitle sub="The 10 most practiced words per language with their accuracy rates">Top Practiced Words</SectionTitle>
-          <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
-            {Object.keys(topWords).map(l => (
-              <Chip key={l} active={wordLang === l} onClick={() => setWordLang(l)} color={COLORS[l]}>
-                {LANG_FLAGS[l]} {LANG_NAMES[l]}
-              </Chip>
-            ))}
-          </div>
-          <Card>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 4px" }}>
-                <thead>
-                  <tr>
-                    {["#", "Word", "Times Practiced", "Accuracy"].map(h => (
-                      <th key={h} style={{ textAlign: h === "Word" || h === "#" ? "left" : "right", padding: "8px 14px", fontSize: 11, textTransform: "uppercase", letterSpacing: 1.5, color: "var(--dim)", fontWeight: 600 }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {topWords[wordLang].map((w, i) => (
-                    <tr key={w.word} style={{ background: "var(--bg)" }}>
-                      <td style={{ padding: "11px 14px", borderRadius: "8px 0 0 8px", color: "var(--dim)", fontFamily: "'JetBrains Mono', monospace", fontSize: 12 }}>{i + 1}</td>
-                      <td style={{ padding: "11px 14px", fontWeight: 700, fontSize: 17, color: COLORS[wordLang] }}>{w.word}</td>
-                      <td style={{ padding: "11px 14px", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontSize: 14 }}>{w.n.toLocaleString()}</td>
-                      <td style={{ padding: "11px 14px", textAlign: "right", borderRadius: "0 8px 8px 0" }}><AccuracyPill value={w.acc} size="sm" /></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ═══════════════════ RECALL ═══════════════════ */}
-      {tab === "recall" && (
-        <div>
-          <SectionTitle sub="Distribution of the predicted recall probability across all 12.8M records">Recall Probability (p_recall)</SectionTitle>
-          <Card>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: "0 4px" }}>
-                <thead>
-                  <tr>
-                    {["p_recall", "Records", "% of Total", "Distribution"].map(h => (
-                      <th key={h} style={{ textAlign: h === "Distribution" ? "left" : "right", padding: "8px 14px", fontSize: 11, textTransform: "uppercase", letterSpacing: 1.5, color: "var(--dim)", fontWeight: 600 }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {recallData.map(d => {
-                    const pct = d.count / 12854226 * 100;
-                    const logMax = Math.log10(10782942);
-                    const logVal = d.count > 0 ? Math.log10(d.count) : 0;
-                    const barW = Math.max(2, (logVal / logMax) * 100);
-                    return (
-                      <tr key={d.bucket} style={{ background: "var(--bg)" }}>
-                        <td style={{ padding: "11px 14px", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontSize: 14, borderRadius: "8px 0 0 8px" }}>{d.bucket}</td>
-                        <td style={{ padding: "11px 14px", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontSize: 14 }}>{d.count.toLocaleString()}</td>
-                        <td style={{ padding: "11px 14px", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: "var(--dim)" }}>{pct.toFixed(2)}%</td>
-                        <td style={{ padding: "11px 14px", borderRadius: "0 8px 8px 0" }}>
-                            <div style={{ width: `${barW}%`, height: 8, borderRadius: 4, background: `linear-gradient(90deg, ${COLORS.red}, ${COLORS.accent})`, minWidth: 3, transition: "width 0.4s ease" }} />
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
             </div>
           </Card>
         </div>
