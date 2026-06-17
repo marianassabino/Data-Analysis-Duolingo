@@ -462,7 +462,7 @@ export default function Dashboard() {
                   <PolarGrid stroke="#455f78" />
                   <PolarAngleAxis dataKey="part" tick={{ fill: "#ffffff", fontSize: 12 }} />
                   <PolarRadiusAxis angle={90} domain={[70, 95]} tickCount={6} tickFormatter={v => `${v}%`} tick={{ fill: "#9fb6cc", fontSize: 10 }} axisLine={false} />
-                  {["en", "es", "fr", "de"].map(lang => (
+                  {["en", "fr"].map(lang => (
                     <Radar key={lang} name={LANG_NAMES[lang]} dataKey={lang} stroke={COLORS[lang]} fill={COLORS[lang]} fillOpacity={0.12} strokeWidth={2.5} />
                   ))}
                   <Legend wrapperStyle={{ fontSize: 13, color: "var(--dim)" }} iconType="circle" />
